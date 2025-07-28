@@ -1,23 +1,28 @@
-import logo from './logo.svg';
+// src/App.js
+import React from 'react';
 import './App.css';
 
 function App() {
+  const todos = [
+    'Buy groceries',
+    'Walk the dog',
+    'Learn React',
+    'Finish homework',
+    'Exercise',
+    'Read a book',
+    'Clean the house',
+    'Call a friend',
+  ];
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div className="todo-wrapper">
+      <div className="todo-grid">
+        {todos.map((item, index) => (
+          <div key={index} className="todo-card">
+            {item}
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
