@@ -20,11 +20,26 @@ function App() {
   );
 
   return (
-    <div className="todo-wrapper">
+  
+    
+    <div className="todo-wrapper"> 
+      <div className="top-container">
+        <div className="top-title">
+                  <img src="/deped.png" alt="deped" className="deped-img" />
+        <div className="title-text">
+            <h1>DEPARTMENT OF EDUCATION</h1>
+            <p>SCHOOLS DIVISION OF CADIZ CITY, NEGROS ISLAND REGION</p>
+      </div>
+      <div className="top-right-logos">
+          <img src="/BPLO.png" alt="Settings" className="right-logo-img" />
+           <img src="/sdocadiz.png" alt="Profile" className="right-logo-img" />
+        </div> 
+        </div>
+      </div>
       <div className="search-bar">
         <input
           type="text"
-          placeholder="Search tasks..."
+          placeholder="Ask Anything About SDO Cadiz City..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
@@ -38,6 +53,7 @@ function App() {
           </div>
         ))}
       </div>
+
     </div>
   );
 }
