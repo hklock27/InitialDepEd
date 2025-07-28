@@ -1,32 +1,47 @@
-/* Modern Search Bar */
+/* General Reset */
+body {
+  margin: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f2f4f8;
+}
+
+/* Wrapper */
+.todo-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40px 20px;
+  animation: fadeIn 1s ease;
+}
+
+/* Search Bar */
 .search-bar {
   position: relative;
   width: 100%;
   max-width: 600px;
   margin-bottom: 30px;
-  animation: fadeIn 1s ease-in;
 }
 
 .search-bar input {
   width: 100%;
-  padding: 14px 50px 14px 20px;
+  padding: 14px 48px 14px 20px;
   font-size: 16px;
   border: 1px solid #ccc;
   border-radius: 50px;
   outline: none;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
   background-color: white;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
 }
 
 .search-bar input:focus {
-  border-color: #0077ff;
-  box-shadow: 0 4px 14px rgba(0, 119, 255, 0.2);
+  border-color: #0078ff;
+  box-shadow: 0 6px 16px rgba(0, 120, 255, 0.2);
 }
 
 .search-icon {
   position: absolute;
-  right: 20px;
+  right: 18px;
   top: 50%;
   transform: translateY(-50%);
   font-size: 18px;
@@ -34,11 +49,52 @@
   pointer-events: none;
 }
 
-/* Align wrapper contents vertically */
-.todo-wrapper {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 40px 20px;
-  animation: fadeIn 1.2s ease-in-out;
+/* 7-Column Grid */
+.todo-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 20px;
+  max-width: 1400px;
+  width: 100%;
+}
+
+/* Todo Card */
+.todo-card {
+  background: white;
+  padding: 18px 12px;
+  border-radius: 10px;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  animation: slideUpFade 0.5s ease forwards;
+  opacity: 0;
+}
+
+.todo-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+}
+
+/* Animations */
+@keyframes slideUpFade {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }

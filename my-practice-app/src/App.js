@@ -6,13 +6,13 @@ function App() {
   const [search, setSearch] = useState('');
   const todos = [
     'SDO History',
-    'Updated Memorandum & Advisory in DepEd 2025',
-    'Availability of Benefits for DepEd Employees and Checklist of Requirements',
-    'Retirement Plan and Benefits and Checklist',
-    'Availability of the Government Car Vehicle and Room Venue',
+    'Updated Memorandum & Advisory DepEd 2025',
+    'Retirement Plan Benefits and Checklist',
+    'Availaibility of Benefits for DepEd Epmloyees',
+    'Availability of the Government Car Vehicle and Venue',
     'Process Flow',
-    'Code of Ethics',
-    'Mission and Vision',
+    'Workflow',
+    'Mission, Vision and Code of Ethics',
   ];
 
   const filteredTodos = todos.filter((todo) =>
@@ -33,7 +33,7 @@ function App() {
 
       <div className="todo-grid">
         {filteredTodos.map((item, index) => (
-          <div key={index} className="todo-card">
+          <div key={index} className="todo-card" style={{ animationDelay: `${index * 0.05}s` }}>
             {item}
           </div>
         ))}
