@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import './App.css';
 
+
 function App() {
   const [search, setSearch] = useState('');
   const [loggedIn, setLoggedIn] = useState(false);
@@ -25,7 +26,7 @@ React.useEffect(() => {
     'SDO History',
     'Updated Memorandum & Advisory DepEd 2025',
     'Retirement Plan Benefits and Checklist',
-    'Availaibility of Benefits for DepEd Epmloyees',
+    'Availability of Benefits for DepEd Epmloyees',
     'Availability of the Government Car Vehicle and Venue',
     'Process Flow',
     'Workflow',
@@ -50,6 +51,17 @@ React.useEffect(() => {
       // 👉 Save login state and username to localStorage
       localStorage.setItem('loggedIn', 'true');
       localStorage.setItem('savedUsername', username);
+
+      if (rememberMe) {
+        localStorage.setItem('rememberMe', 'true');
+        localStorage.setItem('loggedIn', 'true');
+        localStorage.setItem('savedUsername', username);
+      } else {
+        localStorage.removeItem('rememberMe');
+        localStorage.removeItem('loggedIn');
+        localStorage.removeItem('savedUsername');
+      }
+      
   
       setUsername('');
       setPassword('');
@@ -74,9 +86,12 @@ React.useEffect(() => {
 const handleLogout = () => {
   setLoggedIn(false);
   setDropdownOpen(false);
+  setUsername('');
   localStorage.removeItem('loggedIn');
   localStorage.removeItem('savedUsername');
+  localStorage.removeItem('rememberMe');
 };
+
 
 
   const toggleDropdown = () => {
@@ -116,15 +131,15 @@ const handleLogout = () => {
                   <p onClick={handleLogout}>🚪 Log Out</p>
                 </div>
               )}
-              {loggedIn && username && (
-                <div className="welcome-message">
-                   👋 Maligayang Pagbalik!, <strong>{username}</strong>!
-               </div>
-              )}
 
             </div>
           )}
         </div>
+                {loggedIn && username && (
+                <div className="welcome-message">
+                   👋 Maligayang Pagbalik!, <strong>{username}</strong>!
+               </div>
+              )}
       </div>
 
       <div className="search-bar">
@@ -134,16 +149,21 @@ const handleLogout = () => {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
-        <span className="search-icon">🔍</span>
       </div>
 
-      <div className="todo-grid">
-        {filteredTodos.map((item, index) => (
-          <div key={index} className="todo-card" style={{ animationDelay: `${index * 0.05}s` }}>
-            {item}
-          </div>
-        ))}
-      </div>
+        <div className="todo-grid">
+          {filteredTodos.map((item, index) => (
+            <div
+              key={index}
+              className="todo-card"
+              style={{ animationDelay: `${index * 0.05}s` }}
+              onClick={() => alert(`You clicked: ${item}`)} // 👈 you can change this
+            >
+              {item}
+            </div>
+          ))}
+        </div>
+
 
       {showLoginModal && (
         <div className="modal-overlay">
