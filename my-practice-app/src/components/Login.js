@@ -1,33 +1,125 @@
-import { useState } from 'react';
+// src/components/Login.js
+import React, { useState } from 'react';
+import { authAPI } from '../services/api';
 
-function Login() {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
+const Login = ({ onSwitchToRegister, onAuthSuccess }) => {
+  const [formData, setFormData] = useState({
+    email: '',
+    password: ''
+  });
+  const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false);
 
-  const handleLogin = async (e) => {
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+
+    // Clear error when user starts typing
+    if (errors[name]) {
+      setErrors(prev => ({
+        ...prev,
+        [name]: ''
+      }));
+    }
+  };
+
+  const validateForm = () => {
+    const newErrors = {};
+
+    if (!formData.email.trim()) {
+      newErrors.email = 'Email is required';
+    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      newErrors.email = 'Email is invalid';
+    }
+
+    if (!formData.password) {
+      newErrors.password = 'Password is required';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const res = await fetch('http://localhost:5000/api/auth/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, password })
-    });
+    
+    if (!validateForm()) return;
 
-    const data = await res.json();
-    if (res.ok) {
-      localStorage.setItem('token', data.token);
-      alert('Login successful');
-    } else {
-      alert(data.error);
+    setLoading(true);
+    try {
+      const response = await authAPI.login(formData);
+
+      // Store token and user data
+      localStorage.setItem('token', response.data.token);
+      localStorage.setItem('user', JSON.stringify(response.data.user));
+      
+      onAuthSuccess(response.data.user);
+    } catch (error) {
+      setErrors({
+        submit: error.response?.data?.message || 'Login failed. Please try again.'
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <form onSubmit={handleLogin}>
-      <input value={username} onChange={(e) => setUsername(e.target.value)} placeholder="Username" required />
-      <input value={password} onChange={(e) => setPassword(e.target.value)} type="password" placeholder="Password" required />
-      <button type="submit">Login</button>
-    </form>
+    <div className="auth-container">
+      <div className="auth-card">
+        <h2>Sign In</h2>
+        <form onSubmit={handleSubmit}>
+          <div className="form-group">
+            <label htmlFor="email">Email</label>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              className={errors.email ? 'error' : ''}
+              placeholder="Enter your email"
+            />
+            {errors.email && <span className="error-message">{errors.email}</span>}
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="password">Password</label>
+            <input
+              type="password"
+              id="password"
+              name="password"
+              value={formData.password}
+              onChange={handleChange}
+              className={errors.password ? 'error' : ''}
+              placeholder="Enter your password"
+            />
+            {errors.password && <span className="error-message">{errors.password}</span>}
+          </div>
+
+          {errors.submit && <div className="error-message submit-error">{errors.submit}</div>}
+
+          <button type="submit" disabled={loading} className="auth-button">
+            {loading ? 'Signing In...' : 'Sign In'}
+          </button>
+        </form>
+
+        <div className="auth-switch">
+          <p>Don't have an account? 
+            <button 
+              type="button" 
+              onClick={onSwitchToRegister}
+              className="link-button"
+            >
+              Create Account
+            </button>
+          </p>
+        </div>
+      </div>
+    </div>
   );
-}
+};
 
 export default Login;
