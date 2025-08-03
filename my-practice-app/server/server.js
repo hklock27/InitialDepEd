@@ -2,10 +2,17 @@ const express = require('express');
 const cors = require('cors');
 const connectDB = require('./config/db');
 const authRoutes = require('./routes/auth');
+const mongoose = require('mongoose');
+const documentRoutes = require('./routes/documents');
 
 require('dotenv').config();
 
 const app = express();
+
+app.use(express.json());
+app.use('/uploads', express.static('uploads')); // Serve uploaded files
+app.use('/api/Document', documentRoutes);
+
 
 // Connect to MongoDB
 connectDB();
