@@ -16,9 +16,14 @@ const adminAuth = async (req, res, next) => {
       return res.status(401).json({ message: 'Token is not valid' });
     }
 
+    if (user.role !== 'admin') {
+      return res.status(403).json({ message: 'Access denied. Admin privileges required.' });
+    }
+
     req.user = user;
     next();
   } catch (error) {
+    console.error('Admin auth error:', error);
     res.status(401).json({ message: 'Token is not valid' });
   }
 };
