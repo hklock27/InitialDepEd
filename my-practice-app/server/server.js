@@ -4,6 +4,7 @@ const connectDB = require('./config/db');
 const authRoutes = require('./routes/auth');
 const mongoose = require('mongoose');
 const documentRoutes = require('./routes/documents');
+const adminRoutes = require('./routes/admin');
 
 require('dotenv').config();
 
@@ -23,6 +24,7 @@ app.use(express.json());
 
 // Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/admin', adminRoutes);
 
 // Health check route
 app.get('/', (req, res) => {
