@@ -1,6 +1,6 @@
 // src/components/DocumentManager.js
 import React, { useState, useEffect } from 'react';
-import api from '../services/api';
+import api from '../../services/api';
 
 const DocumentManager = () => {
   const [documents, setDocuments] = useState([]);
@@ -322,3 +322,34 @@ const DocumentManager = () => {
                     <option key={type.value} value={type.value}>
                       {type.label}
                     </option>
+                  ))}
+                </select>
+              </div>
+              
+              <div className="form-group">
+                <label>Tags</label>
+                <input
+                  type="text"
+                  value={editingDoc.tags}
+                  onChange={(e) => setEditingDoc({...editingDoc, tags: e.target.value})}
+                  placeholder="Enter tags separated by commas"
+                />
+              </div>
+              
+              <div className="form-actions">
+                <button type="button" onClick={() => setEditingDoc(null)} className="cancel-btn">
+                  Cancel
+                </button>
+                <button type="submit" className="save-btn">
+                  Save Changes
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default DocumentManager;

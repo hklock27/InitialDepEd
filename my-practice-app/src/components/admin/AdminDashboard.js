@@ -1,8 +1,8 @@
 // src/components/AdminDashboard.js
 import React, { useState, useEffect } from 'react';
 import DocumentUpload from './DocumentUpload';
-import DocumentManager from './DocumentManager';
-import api from '../services/api';
+import DocumentManager from './DocumentList';
+import api from '../../services/api';
 
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');

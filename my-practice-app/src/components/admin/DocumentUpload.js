@@ -1,6 +1,6 @@
 // src/components/DocumentUpload.js
 import React, { useState } from 'react';
-import api from '../services/api';
+import api from '../../services/api';
 
 const DocumentUpload = ({ onDocumentUploaded }) => {
   const [uploadData, setUploadData] = useState({

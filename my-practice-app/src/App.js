@@ -3,25 +3,32 @@ import React, { useState, useEffect } from 'react';
 import Login from './components/Login';
 import Register from './components/Register';
 import Dashboard from './components/Dashboard';
+import AdminDashboard from './components/admin/AdminDashboard';
 import './App.css';
+import './styles/Admin.css';
 
-const App = () => {
-  const [currentView, setCurrentView] = useState('login'); // 'login', 'register', 'dashboard'
+function App() {
   const [user, setUser] = useState(null);
+  const [currentView, setCurrentView] = useState('login');
   const [loading, setLoading] = useState(true);
 
-  // Check if user is already logged in on app start
   useEffect(() => {
+    // Check if user is already logged in
     const token = localStorage.getItem('token');
-    const userData = localStorage.getItem('user');
+    const savedUser = localStorage.getItem('user');
     
-    if (token && userData) {
+    if (token && savedUser) {
       try {
-        const parsedUser = JSON.parse(userData);
+        const parsedUser = JSON.parse(savedUser);
         setUser(parsedUser);
-        setCurrentView('dashboard');
+        // Set view based on user role
+        if (parsedUser.role === 'admin') {
+          setCurrentView('admin');
+        } else {
+          setCurrentView('dashboard');
+        }
       } catch (error) {
-        // Invalid user data, clear storage
+        console.error('Error parsing saved user:', error);
         localStorage.removeItem('token');
         localStorage.removeItem('user');
       }
@@ -29,9 +36,14 @@ const App = () => {
     setLoading(false);
   }, []);
 
-  const handleAuthSuccess = (userData) => {
+  const handleLoginSuccess = (userData) => {
     setUser(userData);
-    setCurrentView('dashboard');
+    // Redirect based on user role
+    if (userData.role === 'admin') {
+      setCurrentView('admin');
+    } else {
+      setCurrentView('dashboard');
+    }
   };
 
   const handleLogout = () => {
@@ -41,38 +53,56 @@ const App = () => {
     setCurrentView('login');
   };
 
+  const switchToLogin = () => {
+    setCurrentView('login');
+  };
+
+  const switchToRegister = () => {
+    setCurrentView('register');
+  };
+
   if (loading) {
     return (
-      <div className="loading-container">
-        <div className="loading-spinner">Loading...</div>
+      <div className="App">
+        <div className="loading-container">
+          <div className="loading-spinner"></div>
+          <p>Loading...</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="app">
+    <div className="App">
       {currentView === 'login' && (
-        <Login
-          onSwitchToRegister={() => setCurrentView('register')}
-          onAuthSuccess={handleAuthSuccess}
+        <Login 
+          onLoginSuccess={handleLoginSuccess}
+          onSwitchToRegister={switchToRegister}
         />
       )}
       
       {currentView === 'register' && (
-        <Register
-          onSwitchToLogin={() => setCurrentView('login')}
-          onAuthSuccess={handleAuthSuccess}
+        <Register 
+          onRegisterSuccess={handleLoginSuccess}
+          onSwitchToLogin={switchToLogin}
         />
       )}
       
-      {currentView === 'dashboard' && user && (
-        <Dashboard
-          user={user}
+      {currentView === 'dashboard' && user && user.role === 'user' && (
+        <Dashboard 
+          user={user} 
+          onLogout={handleLogout}
+        />
+      )}
+      
+      {currentView === 'admin' && user && user.role === 'admin' && (
+        <AdminDashboard 
+          user={user} 
           onLogout={handleLogout}
         />
       )}
     </div>
   );
-};
+}
 
 export default App;
