@@ -4,8 +4,10 @@ import Login from './components/Login';
 import Register from './components/Register';
 import Dashboard from './components/Dashboard';
 import AdminDashboard from './components/admin/AdminDashboard';
+import ChatInterface from './components/ChatInterface';
 import './App.css';
 import './styles/Admin.css';
+
 
 function App() {
   const [user, setUser] = useState(null);
@@ -101,6 +103,10 @@ function App() {
           onLogout={handleLogout}
         />
       )}
+    </div>,
+    
+    <div className="chat-section">
+      <ChatInterface />
     </div>
   );
 }

@@ -4,7 +4,7 @@ const chatService = require('../services/chatService');
 const auth = require('../middleware/auth');
 
 // This is like Door #1: "Hey, I have a question!"
-router.post('/query', auth, async (req, res) => {
+router.post('/query', async (req, res) => {
   try {
     console.log('🔔 Someone asked a question!');
     
@@ -41,7 +41,7 @@ router.post('/query', auth, async (req, res) => {
 });
 
 // This is like Door #2: "Give me some suggestions!"
-router.get('/suggestions', auth, async (req, res) => {
+router.get('/suggestions', async (req, res) => {
   try {
     console.log('💡 Someone wants question suggestions!');
     
@@ -73,7 +73,7 @@ router.get('/suggestions', auth, async (req, res) => {
 });
 
 // This is like Door #3: "Show me chat history!" (not implemented yet)
-router.get('/history', auth, async (req, res) => {
+router.get('/history', async (req, res) => {
   try {
     console.log('📜 Someone wants their chat history!');
     
