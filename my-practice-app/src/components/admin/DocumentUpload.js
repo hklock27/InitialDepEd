@@ -1,18 +1,18 @@
-// src/components/DocumentUpload.js
-import React, { useState } from 'react';
-import api from '../../services/api';
+import React, { useState, useEffect } from 'react';
+import '../../styles/DocumentStyles.css';
 
-const DocumentUpload = ({ onDocumentUploaded }) => {
+const DocumentUpload = () => {
+  const [documents, setDocuments] = useState([]);
+  const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [dragActive, setDragActive] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedFile, setSelectedFile] = useState(null);
   const [uploadData, setUploadData] = useState({
     title: '',
     documentType: 'memo_circular',
-    tags: ''
+    documentNumber: ''
   });
-  const [selectedFile, setSelectedFile] = useState(null);
-  const [uploading, setUploading] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0);
-  const [message, setMessage] = useState({ text: '', type: '' });
-  const [dragOver, setDragOver] = useState(false);
 
   const documentTypes = [
     { value: 'memo_circular', label: 'Memo Circular' },
@@ -22,6 +22,25 @@ const DocumentUpload = ({ onDocumentUploaded }) => {
     { value: 'other', label: 'Other' }
   ];
 
+  // Load existing documents on component mount
+  useEffect(() => {
+    loadDocuments();
+  }, []);
+
+  const loadDocuments = async () => {
+    try {
+      // Try to get documents from your existing route
+      const response = await fetch('http://localhost:5000/api/Document');
+      if (response.ok) {
+        const data = await response.json();
+        setDocuments(data || []);
+      }
+    } catch (error) {
+      console.error('Error loading documents:', error);
+      setDocuments([]);
+    }
+  };
+
   const handleInputChange = (e) => {
     setUploadData({
       ...uploadData,
@@ -29,11 +48,10 @@ const DocumentUpload = ({ onDocumentUploaded }) => {
     });
   };
 
-  const handleFileSelect = (file) => {
+  const handleFileSelect = (e) => {
+    const file = e.target.files[0];
     if (file && file.type === 'application/pdf') {
       setSelectedFile(file);
-      setMessage({ text: '', type: '' });
-      
       // Auto-generate title if empty
       if (!uploadData.title) {
         const fileName = file.name.replace('.pdf', '');
@@ -43,236 +61,328 @@ const DocumentUpload = ({ onDocumentUploaded }) => {
         }));
       }
     } else {
-      setMessage({ text: 'Please select a PDF file only.', type: 'error' });
+      alert('Please select a PDF file only.');
     }
   };
 
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    handleFileSelect(file);
-  };
-
-  const handleDragOver = (e) => {
+  const handleDrag = (e) => {
     e.preventDefault();
-    setDragOver(true);
-  };
-
-  const handleDragLeave = (e) => {
-    e.preventDefault();
-    setDragOver(false);
+    e.stopPropagation();
+    if (e.type === "dragenter" || e.type === "dragover") {
+      setDragActive(true);
+    } else if (e.type === "dragleave") {
+      setDragActive(false);
+    }
   };
 
   const handleDrop = (e) => {
     e.preventDefault();
-    setDragOver(false);
+    e.stopPropagation();
+    setDragActive(false);
+    
     const file = e.dataTransfer.files[0];
-    handleFileSelect(file);
+    if (file && file.type === 'application/pdf') {
+      setSelectedFile(file);
+      // Auto-generate title if empty
+      if (!uploadData.title) {
+        const fileName = file.name.replace('.pdf', '');
+        setUploadData(prev => ({
+          ...prev,
+          title: fileName
+        }));
+      }
+    }
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    
+  const uploadDocument = async () => {
     if (!selectedFile) {
-      setMessage({ text: 'Please select a PDF file to upload.', type: 'error' });
+      alert('Please select a PDF file to upload.');
       return;
     }
 
     if (!uploadData.title.trim()) {
-      setMessage({ text: 'Please enter a document title.', type: 'error' });
+      alert('Please enter a document title.');
       return;
     }
 
     setUploading(true);
     setUploadProgress(0);
-    setMessage({ text: '', type: '' });
 
     try {
       const formData = new FormData();
-      formData.append('document', selectedFile);
+      formData.append('pdf', selectedFile);
       formData.append('title', uploadData.title.trim());
       formData.append('documentType', uploadData.documentType);
-      formData.append('tags', uploadData.tags);
+      formData.append('documentNumber', uploadData.documentNumber);
+      formData.append('uploadedBy', 'Admin');
 
-      const response = await api.post('/admin/documents/upload', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-        onUploadProgress: (progressEvent) => {
-          const percentCompleted = Math.round(
-            (progressEvent.loaded * 100) / progressEvent.total
-          );
-          setUploadProgress(percentCompleted);
-        },
+      // Simulate progress
+      const progressInterval = setInterval(() => {
+        setUploadProgress(prev => {
+          if (prev >= 90) {
+            clearInterval(progressInterval);
+            return 90;
+          }
+          return prev + 10;
+        });
+      }, 200);
+
+      const response = await fetch('http://localhost:5000/api/Document/upload', {
+        method: 'POST',
+        body: formData,
       });
 
-      setMessage({ 
-        text: `Document "${response.data.document.title}" uploaded successfully!`, 
-        type: 'success' 
-      });
+      clearInterval(progressInterval);
+      setUploadProgress(100);
 
-      // Reset form
-      setUploadData({
-        title: '',
-        documentType: 'memo_circular',
-        tags: ''
-      });
-      setSelectedFile(null);
-      setUploadProgress(0);
-
-      // Reset file input
-      const fileInput = document.getElementById('file-input');
-      if (fileInput) {
-        fileInput.value = '';
+      if (response.ok) {
+        const result = await response.json();
+        console.log('Upload successful:', result);
+        alert(`Document "${uploadData.title}" uploaded successfully!`);
+        
+        // Reset form
+        setSelectedFile(null);
+        setUploadData({
+          title: '',
+          documentType: 'memo_circular',
+          documentNumber: ''
+        });
+        
+        // Refresh document list
+        loadDocuments();
+      } else {
+        const error = await response.json();
+        console.error('Upload failed:', error);
+        alert('Upload failed: ' + (error.message || 'Unknown error'));
       }
-
-      // Notify parent component
-      if (onDocumentUploaded) {
-        onDocumentUploaded(response.data.document);
-      }
-
     } catch (error) {
-      console.error('Upload error:', error);
-      const errorMessage = error.response?.data?.message || 'Failed to upload document';
-      setMessage({ text: errorMessage, type: 'error' });
-      setUploadProgress(0);
-    } finally {
-      setUploading(false);
+      console.error('Error uploading document:', error);
+      alert('Error uploading document: ' + error.message);
+    }
+
+    setUploading(false);
+    setUploadProgress(0);
+  };
+
+  const deleteDocument = async (documentId, title) => {
+    if (!window.confirm(`Are you sure you want to delete "${title}"?`)) return;
+
+    try {
+      const response = await fetch(`http://localhost:5000/api/Document/${documentId}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        loadDocuments(); // Refresh the list
+        alert('Document deleted successfully');
+      } else {
+        console.error('Failed to delete document');
+        alert('Failed to delete document');
+      }
+    } catch (error) {
+      console.error('Error deleting document:', error);
+      alert('Error deleting document');
     }
   };
 
+  const filteredDocuments = documents.filter(doc =>
+    doc.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    doc.originalName?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const formatFileSize = (bytes) => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };
+
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
   return (
-    <div className="document-upload">
-      <div className="upload-header">
-        <h2>📄 Upload New Document</h2>
-        <p>Upload PDF documents to make them available for the chatbot to reference.</p>
+    <div className="document-manager">
+      {/* Header */}
+      <div className="document-header">
+        <div className="header-content">
+          <h2>📚 DepEd Document Management</h2>
+          <p>Upload and manage DepEd documents for the AI chatbot</p>
+        </div>
+        <div className="document-stats">
+          <div className="stat">
+            <span className="stat-number">{documents.length}</span>
+            <span className="stat-label">Documents</span>
+          </div>
+        </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="upload-form">
-        {/* File Upload Area */}
-        <div className="form-section">
-          <label className="section-label">Select PDF Document</label>
-          <div 
-            className={`file-upload-area ${dragOver ? 'drag-over' : ''} ${selectedFile ? 'has-file' : ''}`}
-            onDragOver={handleDragOver}
-            onDragLeave={handleDragLeave}
-            onDrop={handleDrop}
-            onClick={() => document.getElementById('file-input').click()}
-          >
-            <input
-              id="file-input"
-              type="file"
-              accept=".pdf"
-              onChange={handleFileChange}
-              style={{ display: 'none' }}
-            />
-            
-            {selectedFile ? (
-              <div className="selected-file">
-                <div className="file-icon">📄</div>
-                <div className="file-info">
-                  <h4>{selectedFile.name}</h4>
-                  <p>{(selectedFile.size / 1024 / 1024).toFixed(2)} MB</p>
-                </div>
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setSelectedFile(null);
-                    document.getElementById('file-input').value = '';
-                  }}
-                  className="remove-file-btn"
-                >
-                  ✕
-                </button>
+      {/* Upload Section */}
+      <div className="upload-section">
+        <div 
+          className={`upload-area ${dragActive ? 'drag-active' : ''}`}
+          onDragEnter={handleDrag}
+          onDragLeave={handleDrag}
+          onDragOver={handleDrag}
+          onDrop={handleDrop}
+        >
+          <div className="upload-icon">📄</div>
+          <h3>Upload DepEd Document</h3>
+          <p>Drag and drop a PDF file here or click to browse</p>
+          <input
+            type="file"
+            id="file-input"
+            accept=".pdf"
+            onChange={handleFileSelect}
+            className="file-input"
+          />
+          <label htmlFor="file-input" className="upload-btn">
+            Choose PDF File
+          </label>
+        </div>
+
+        {/* Selected file and form */}
+        {selectedFile && (
+          <div className="selected-files">
+            <h4>Selected File</h4>
+            <div className="file-item">
+              <span className="file-name">{selectedFile.name}</span>
+              <span className="file-size">{formatFileSize(selectedFile.size)}</span>
+            </div>
+
+            {/* Document Information Form */}
+            <div className="document-form">
+              <div className="form-group">
+                <label htmlFor="title">Document Title *</label>
+                <input
+                  type="text"
+                  id="title"
+                  name="title"
+                  value={uploadData.title}
+                  onChange={handleInputChange}
+                  placeholder="Enter document title"
+                  required
+                />
               </div>
-            ) : (
-              <div className="upload-prompt">
-                <div className="upload-icon">📁</div>
-                <h3>Drop PDF file here or click to browse</h3>
-                <p>Maximum file size: 10MB</p>
+
+              <div className="form-group">
+                <label htmlFor="documentType">Document Type</label>
+                <select
+                  id="documentType"
+                  name="documentType"
+                  value={uploadData.documentType}
+                  onChange={handleInputChange}
+                >
+                  {documentTypes.map((type) => (
+                    <option key={type.value} value={type.value}>
+                      {type.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="documentNumber">Document Number (optional)</label>
+                <input
+                  type="text"
+                  id="documentNumber"
+                  name="documentNumber"
+                  value={uploadData.documentNumber}
+                  onChange={handleInputChange}
+                  placeholder="e.g., DO_s2024_020"
+                />
+              </div>
+            </div>
+
+            <button 
+              onClick={uploadDocument}
+              disabled={uploading}
+              className="upload-submit-btn"
+            >
+              {uploading ? 'Uploading...' : 'Upload Document'}
+            </button>
+
+            {uploading && (
+              <div className="upload-progress">
+                <div 
+                  className="progress-bar"
+                  style={{ width: `${uploadProgress}%` }}
+                ></div>
+                <span className="progress-text">{Math.round(uploadProgress)}%</span>
               </div>
             )}
           </div>
+        )}
+      </div>
+
+      {/* Search and Filter */}
+      <div className="document-controls">
+        <div className="search-box">
+          <input
+            type="text"
+            placeholder="Search documents..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+          <span className="search-icon">🔍</span>
         </div>
+      </div>
 
-        {/* Document Information */}
-        <div className="form-section">
-          <label className="section-label">Document Information</label>
-          
-          <div className="form-group">
-            <label htmlFor="title">Document Title *</label>
-            <input
-              type="text"
-              id="title"
-              name="title"
-              value={uploadData.title}
-              onChange={handleInputChange}
-              placeholder="Enter document title (e.g., DO_s2024_020)"
-              required
-            />
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="documentType">Document Type</label>
-            <select
-              id="documentType"
-              name="documentType"
-              value={uploadData.documentType}
-              onChange={handleInputChange}
-            >
-              {documentTypes.map((type) => (
-                <option key={type.value} value={type.value}>
-                  {type.label}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="tags">Tags (optional)</label>
-            <input
-              type="text"
-              id="tags"
-              name="tags"
-              value={uploadData.tags}
-              onChange={handleInputChange}
-              placeholder="Enter tags separated by commas (e.g., policy, guidelines, 2024)"
-            />
-            <small className="help-text">
-              Tags help users find documents more easily through search
-            </small>
-          </div>
+      {/* Documents List */}
+      <div className="documents-list">
+        <div className="list-header">
+          <h3>Uploaded Documents ({filteredDocuments.length})</h3>
         </div>
-
-        {/* Upload Progress */}
-        {uploading && (
-          <div className="upload-progress">
-            <div className="progress-bar">
-              <div 
-                className="progress-fill" 
-                style={{ width: `${uploadProgress}%` }}
-              ></div>
-            </div>
-            <p>Uploading... {uploadProgress}%</p>
+        
+        {filteredDocuments.length === 0 ? (
+          <div className="empty-state">
+            <div className="empty-icon">📄</div>
+            <h3>No Documents Found</h3>
+            <p>
+              {documents.length === 0 
+                ? "Upload your first DepEd document to get started"
+                : "No documents match your search criteria"
+              }
+            </p>
+          </div>
+        ) : (
+          <div className="document-grid">
+            {filteredDocuments.map((doc) => (
+              <div key={doc._id} className="document-card">
+                <div className="document-icon">📄</div>
+                <div className="document-info">
+                  <h4 className="document-title">{doc.title || doc.originalName}</h4>
+                  <div className="document-meta">
+                    <span className="document-size">{formatFileSize(doc.fileSize)}</span>
+                    <span className="document-date">{formatDate(doc.uploadedAt)}</span>
+                  </div>
+                  <div className="document-status">
+                    <span className="status-badge processed">
+                      ✅ Ready for Search
+                    </span>
+                  </div>
+                </div>
+                <div className="document-actions">
+                  <button 
+                    onClick={() => deleteDocument(doc._id, doc.title || doc.originalName)}
+                    className="delete-btn"
+                    title="Delete document"
+                  >
+                    🗑️
+                  </button>
+                </div>
+              </div>
+            ))}
           </div>
         )}
-
-        {/* Message */}
-        {message.text && (
-          <div className={`message ${message.type}`}>
-            {message.text}
-          </div>
-        )}
-
-        {/* Submit Button */}
-        <button 
-          type="submit" 
-          className="upload-btn" 
-          disabled={uploading || !selectedFile}
-        >
-          {uploading ? 'Uploading...' : 'Upload Document'}
-        </button>
-      </form>
+      </div>
     </div>
   );
 };

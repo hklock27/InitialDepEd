@@ -1,7 +1,10 @@
+// src/components/ChatInterface.js
 import React, { useState, useEffect, useRef } from 'react';
+import DocumentUpload from './admin/DocumentUpload';
 import '../styles/Chat.css';
 
 const ChatInterface = () => {
+  const [activeTab, setActiveTab] = useState('chat');
   const [messages, setMessages] = useState([]);
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -130,9 +133,14 @@ const ChatInterface = () => {
     });
   };
 
+  const handleDocumentUploaded = (document) => {
+    console.log('Document uploaded:', document);
+    // You could add a success message or refresh document list here
+  };
+
   return (
     <div className="chat-interface">
-      {/* Chat Header */}
+      {/* Chat Header with Tabs */}
       <div className="chat-header">
         <div className="chat-header-content">
           <div className="chat-title">
@@ -144,117 +152,169 @@ const ChatInterface = () => {
             <span>Online</span>
           </div>
         </div>
+        
+        {/* Tab Navigation */}
+        <div className="tab-navigation">
+          <button 
+            className={`tab-button ${activeTab === 'chat' ? 'active' : ''}`}
+            onClick={() => setActiveTab('chat')}
+          >
+            💬 Chat
+          </button>
+          <button 
+            className={`tab-button ${activeTab === 'documents' ? 'active' : ''}`}
+            onClick={() => setActiveTab('documents')}
+          >
+            📁 Documents
+          </button>
+          <button 
+            className={`tab-button ${activeTab === 'analytics' ? 'active' : ''}`}
+            onClick={() => setActiveTab('analytics')}
+          >
+            📊 Analytics
+          </button>
+        </div>
       </div>
 
-      {/* Messages Container */}
-      <div className="chat-messages">
-        {messages.map((message) => (
-          <div key={message.id} className={`message ${message.type}`}>
-            <div className="message-content">
-              <div className="message-text">
-                {message.content}
-              </div>
-              
-              {/* Show sources if available */}
-              {message.sources && message.sources.length > 0 && (
-                <div className="message-sources">
-                  <p><strong>📚 Sources:</strong></p>
-                  <ul>
-                    {message.sources.map((source, index) => (
-                      <li key={index}>
-                        <span className="source-title">{source.title}</span>
-                        {source.page && <span className="source-page"> (Page {source.page})</span>}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
+      {/* Tab Content */}
+      <div className="tab-content">
+        {activeTab === 'chat' && (
+          <>
+            {/* Messages Container */}
+            <div className="chat-messages">
+              {messages.map((message) => (
+                <div key={message.id} className={`message ${message.type}`}>
+                  <div className="message-content">
+                    <div className="message-text">
+                      {message.content}
+                    </div>
+                    
+                    {/* Show sources if available */}
+                    {message.sources && message.sources.length > 0 && (
+                      <div className="message-sources">
+                        <p><strong>📚 Sources:</strong></p>
+                        <ul>
+                          {message.sources.map((source, index) => (
+                            <li key={index}>
+                              <span className="source-title">{source.title}</span>
+                              {source.page && <span className="source-page"> (Page {source.page})</span>}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
 
-              {/* Show follow-up questions if available */}
-              {message.followUp && message.followUp.length > 0 && (
-                <div className="follow-up-questions">
-                  <p><strong>💡 Follow-up questions:</strong></p>
-                  <div className="follow-up-buttons">
-                    {message.followUp.map((question, index) => (
-                      <button
-                        key={index}
-                        className="follow-up-btn"
-                        onClick={() => handleSuggestionClick(question)}
-                      >
-                        {question}
-                      </button>
-                    ))}
+                    {/* Show follow-up questions if available */}
+                    {message.followUp && message.followUp.length > 0 && (
+                      <div className="follow-up-questions">
+                        <p><strong>💡 Follow-up questions:</strong></p>
+                        <div className="follow-up-buttons">
+                          {message.followUp.map((question, index) => (
+                            <button
+                              key={index}
+                              className="follow-up-btn"
+                              onClick={() => handleSuggestionClick(question)}
+                            >
+                              {question}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="message-timestamp">
+                      {formatTime(message.timestamp)}
+                    </div>
+                  </div>
+                </div>
+              ))}
+
+              {/* Loading indicator */}
+              {isLoading && (
+                <div className="message bot">
+                  <div className="message-content">
+                    <div className="typing-indicator">
+                      <div className="typing-dots">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                      </div>
+                      <span className="typing-text">DepEd Assistant is typing...</span>
+                    </div>
                   </div>
                 </div>
               )}
 
-              <div className="message-timestamp">
-                {formatTime(message.timestamp)}
+              <div ref={messagesEndRef} />
+            </div>
+
+            {/* Suggestions (show only when chat is empty or no recent activity) */}
+            {messages.length <= 1 && suggestions.length > 0 && (
+              <div className="chat-suggestions">
+                <p className="suggestions-title">💬 Try asking:</p>
+                <div className="suggestions-grid">
+                  {suggestions.map((suggestion, index) => (
+                    <button
+                      key={index}
+                      className="suggestion-btn"
+                      onClick={() => handleSuggestionClick(suggestion)}
+                    >
+                      {suggestion}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Input Area */}
+            <div className="chat-input-container">
+              <div className="chat-input-wrapper">
+                <textarea
+                  className="chat-input"
+                  value={inputMessage}
+                  onChange={(e) => setInputMessage(e.target.value)}
+                  onKeyPress={handleKeyPress}
+                  placeholder="Ask me about DepEd policies, procedures, or guidelines..."
+                  disabled={isLoading}
+                  rows="1"
+                />
+                <button
+                  className="send-button"
+                  onClick={() => sendMessage()}
+                  disabled={!inputMessage.trim() || isLoading}
+                >
+                  {isLoading ? '⏳' : '📤'}
+                </button>
+              </div>
+              <div className="input-hint">
+                Press Enter to send • Shift+Enter for new line
               </div>
             </div>
-          </div>
-        ))}
+          </>
+        )}
 
-        {/* Loading indicator */}
-        {isLoading && (
-          <div className="message bot">
-            <div className="message-content">
-              <div className="typing-indicator">
-                <div className="typing-dots">
-                  <span></span>
-                  <span></span>
-                  <span></span>
-                </div>
-                <span className="typing-text">DepEd Assistant is typing...</span>
+        {activeTab === 'documents' && (
+          <div className="documents-tab">
+            <DocumentUpload onDocumentUploaded={handleDocumentUploaded} />
+          </div>
+        )}
+
+        {activeTab === 'analytics' && (
+          <div className="analytics-tab">
+            <div className="analytics-placeholder">
+              <div className="placeholder-content">
+                <h2>📊 Analytics Coming Soon</h2>
+                <p>This section will show:</p>
+                <ul>
+                  <li>Chat usage statistics</li>
+                  <li>Most asked questions</li>
+                  <li>Document access reports</li>
+                  <li>User engagement metrics</li>
+                </ul>
               </div>
             </div>
           </div>
         )}
-
-        <div ref={messagesEndRef} />
-      </div>
-
-      {/* Suggestions (show only when chat is empty or no recent activity) */}
-      {messages.length <= 1 && suggestions.length > 0 && (
-        <div className="chat-suggestions">
-          <p className="suggestions-title">💬 Try asking:</p>
-          <div className="suggestions-grid">
-            {suggestions.map((suggestion, index) => (
-              <button
-                key={index}
-                className="suggestion-btn"
-                onClick={() => handleSuggestionClick(suggestion)}
-              >
-                {suggestion}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Input Area */}
-      <div className="chat-input-container">
-        <div className="chat-input-wrapper">
-          <textarea
-            className="chat-input"
-            value={inputMessage}
-            onChange={(e) => setInputMessage(e.target.value)}
-            onKeyPress={handleKeyPress}
-            placeholder="Ask me about DepEd policies, procedures, or guidelines..."
-            disabled={isLoading}
-            rows="1"
-          />
-          <button
-            className="send-button"
-            onClick={() => sendMessage()}
-            disabled={!inputMessage.trim() || isLoading}
-          >
-            {isLoading ? '⏳' : '📤'}
-          </button>
-        </div>
-        <div className="input-hint">
-          Press Enter to send • Shift+Enter for new line
-        </div>
       </div>
     </div>
   );

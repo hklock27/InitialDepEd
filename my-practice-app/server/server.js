@@ -4,6 +4,11 @@ const connectDB = require('./config/db');
 const mongoose = require('mongoose');
 const documentRoutes = require('./routes/documents');
 
+// Add these imports for file uploads
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs').promises;
+
 // Import routes
 const authRoutes = require('./routes/auth');
 const adminRoutes = require('./routes/admin');
