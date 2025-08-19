@@ -127,7 +127,7 @@ const DocumentUpload = () => {
         });
       }, 200);
 
-      const response = await fetch('http://localhost:5000/api/Document/upload', {
+      const response = await fetch('http://localhost:5000/api/documents/upload', {
         method: 'POST',
         body: formData,
       });
@@ -168,7 +168,7 @@ const DocumentUpload = () => {
     if (!window.confirm(`Are you sure you want to delete "${title}"?`)) return;
 
     try {
-      const response = await fetch(`http://localhost:5000/api/Document/${documentId}`, {
+      const response = await fetch(`http://localhost:5000/api/documents/${documentId}`, {
         method: 'DELETE',
       });
 

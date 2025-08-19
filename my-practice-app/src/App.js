@@ -8,7 +8,6 @@ import ChatInterface from './components/ChatInterface';
 import './App.css';
 import './styles/Admin.css';
 
-
 function App() {
   const [user, setUser] = useState(null);
   const [currentView, setCurrentView] = useState('login');
@@ -103,10 +102,13 @@ function App() {
           onLogout={handleLogout}
         />
       )}
-    </div>,
-    
-    <div className="chat-section">
-      <ChatInterface />
+
+      {/* Show ChatInterface for logged in users */}
+      {user && (
+        <div className="chat-section">
+          <ChatInterface />
+        </div>
+      )}
     </div>
   );
 }

@@ -5,11 +5,15 @@ import '../styles/Chat.css';
 
 const ChatInterface = () => {
   const [activeTab, setActiveTab] = useState('chat');
+  console.log('Current activeTab:', activeTab);
   const [messages, setMessages] = useState([]);
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [suggestions, setSuggestions] = useState([]);
   const messagesEndRef = useRef(null);
+  
+  // Add a render counter to force re-renders
+  const [renderKey, setRenderKey] = useState(0);
 
   // Auto-scroll to bottom when new messages arrive
   const scrollToBottom = () => {
@@ -138,48 +142,21 @@ const ChatInterface = () => {
     // You could add a success message or refresh document list here
   };
 
-  return (
-    <div className="chat-interface">
-      {/* Chat Header with Tabs */}
-      <div className="chat-header">
-        <div className="chat-header-content">
-          <div className="chat-title">
-            <h2>🤖 DepEd Assistant</h2>
-            <p>Ask me about DepEd policies, procedures, and guidelines</p>
-          </div>
-          <div className="chat-status">
-            <span className="status-indicator online"></span>
-            <span>Online</span>
-          </div>
-        </div>
-        
-        {/* Tab Navigation */}
-        <div className="tab-navigation">
-          <button 
-            className={`tab-button ${activeTab === 'chat' ? 'active' : ''}`}
-            onClick={() => setActiveTab('chat')}
-          >
-            💬 Chat
-          </button>
-          <button 
-            className={`tab-button ${activeTab === 'documents' ? 'active' : ''}`}
-            onClick={() => setActiveTab('documents')}
-          >
-            📁 Documents
-          </button>
-          <button 
-            className={`tab-button ${activeTab === 'analytics' ? 'active' : ''}`}
-            onClick={() => setActiveTab('analytics')}
-          >
-            📊 Analytics
-          </button>
-        </div>
-      </div>
+  // Enhanced tab switching with forced re-render
+  const switchTab = (tabName) => {
+    console.log(`Switching to ${tabName} tab`);
+    setActiveTab(tabName);
+    setRenderKey(prev => prev + 1); // Force re-render
+  };
 
-      {/* Tab Content */}
-      <div className="tab-content">
-        {activeTab === 'chat' && (
-          <>
+  // Render tab content based on active tab
+  const renderTabContent = () => {
+    console.log(`Rendering content for tab: ${activeTab}`);
+    
+    switch (activeTab) {
+      case 'chat':
+        return (
+          <div className="chat-tab-content" key={`chat-${renderKey}`}>
             {/* Messages Container */}
             <div className="chat-messages">
               {messages.map((message) => (
@@ -290,17 +267,19 @@ const ChatInterface = () => {
                 Press Enter to send • Shift+Enter for new line
               </div>
             </div>
-          </>
-        )}
+          </div>
+        );
 
-        {activeTab === 'documents' && (
-          <div className="documents-tab">
+      case 'documents':
+        return (
+          <div className="documents-tab-content" key={`documents-${renderKey}`}>
             <DocumentUpload onDocumentUploaded={handleDocumentUploaded} />
           </div>
-        )}
+        );
 
-        {activeTab === 'analytics' && (
-          <div className="analytics-tab">
+      case 'analytics':
+        return (
+          <div className="analytics-tab-content" key={`analytics-${renderKey}`}>
             <div className="analytics-placeholder">
               <div className="placeholder-content">
                 <h2>📊 Analytics Coming Soon</h2>
@@ -314,7 +293,54 @@ const ChatInterface = () => {
               </div>
             </div>
           </div>
-        )}
+        );
+
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <div className="chat-interface">
+      {/* Chat Header with Tabs */}
+      <div className="chat-header">
+        <div className="chat-header-content">
+          <div className="chat-title">
+            <h2>🤖 DepEd Assistant</h2>
+            <p>Ask me about DepEd policies, procedures, and guidelines</p>
+          </div>
+          <div className="chat-status">
+            <span className="status-indicator online"></span>
+            <span>Online</span>
+          </div>
+        </div>
+        
+        {/* Tab Navigation */}
+        <div className="tab-navigation">
+          <button 
+            className={`tab-button ${activeTab === 'chat' ? 'active' : ''}`}
+            onClick={() => switchTab('chat')}
+          >
+            💬 Chat
+          </button>
+          <button 
+            className={`tab-button ${activeTab === 'documents' ? 'active' : ''}`}
+            onClick={() => switchTab('documents')}
+          >
+            📁 Documents
+          </button>
+          <button 
+            className={`tab-button ${activeTab === 'analytics' ? 'active' : ''}`}
+            onClick={() => switchTab('analytics')}
+          >
+            📊 Analytics
+          </button>
+        </div>
+      </div>
+
+      {/* Tab Content - Single container with dynamic content */}
+      <div className="tab-content" key={`tab-content-${renderKey}`}>
+        {renderTabContent()}
       </div>
     </div>
   );

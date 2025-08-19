@@ -468,7 +468,7 @@
   box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2);
 }
 
-/* Tab Navigation Styles - Add to bottom of Chat.css */
+/* Tab Navigation Styles*/
 
 .tab-navigation {
   display: flex;
@@ -571,4 +571,43 @@
   .placeholder-content {
     max-width: 100%;
   }
+}
+
+/* Force tab content isolation */
+.tab-content {
+  position: relative;
+  width: 100%;
+  height: calc(100vh - 200px);
+  overflow: auto;
+  background: white;
+  z-index: 1;
+}
+
+/* Ensure each tab content container is isolated */
+.chat-tab-content,
+.documents-tab-content,
+.analytics-tab-content {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: white;
+  display: block;
+  z-index: 10;
+}
+
+/* Hide any potential overlapping elements */
+.document-container {
+  position: relative !important;
+  z-index: 1 !important;
+}
+
+/* Ensure proper display hierarchy */
+.chat-interface > * {
+  position: relative;
+}
+
+/* Force proper tab isolation */
+.tab-button.active {
+  position: relative;
+  z-index: 100;
 }

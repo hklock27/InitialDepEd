@@ -29,6 +29,18 @@ router.post('/upload', upload.single('pdf'), async (req, res) => {
       isActive: true
     });
 
+              // GET /api/documents - Get all documents
+          router.get('/', async (req, res) => {
+            try {
+              const documents = await Document.find({ isActive: true })
+                .sort({ uploadedAt: -1 });
+              res.json(documents);
+            } catch (error) {
+              console.error('Error fetching documents:', error);
+              res.status(500).json({ error: 'Failed to fetch documents' });
+            }
+          });
+
     await doc.save();
     res.status(201).json({ message: 'Document uploaded successfully', document: doc });
   } catch (err) {
